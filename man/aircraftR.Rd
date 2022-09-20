@@ -9,6 +9,6 @@
 \usage{data(aircraftR)}
 \format{a matrix containing the correlations}
 \source{Gower and Hand, Table 2.1}
-\references{Gower, J.C. and Hand, D.J. (1996) \emph{Biplots}, Chapman \& Hall, London}
+\references{Gower, J.C. and Hand, D.J. (1996) \emph{Biplots}, Chapman & Hall, London}
 \keyword{datasets}
      

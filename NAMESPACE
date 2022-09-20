@@ -1,1 +1,8 @@
-export (angleToR,linangplot,lincos,correlogram,fit_angles,pfa,pco)
+export (angleToR,linangplot,lincos,correlogram,fit_angles,ipSymLS,pfa,pco,rmse)
+import (calibrate)
+import (corrplot)
+import (xtable)
+import (MASS)
+importFrom("stats", "cor", "cov", "nlminb", "runif", "var")
+importFrom("graphics", "arrows", "par", "text")
+

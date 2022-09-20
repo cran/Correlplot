@@ -30,35 +30,40 @@
 \newcommand{\keywords}{\paragraph{Keywords:}}
 
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 \begin{center}
 \sf
-{\sf \bf \Large Correlplot: a collection of functions for plotting correlation matrices}\\
+{\sf \bf \Large Correlplot: a collection of functions for the graphical representation of correlation matrices}\\
 \vspace{4mm}
-{\sf \normalsize {\tt version 1.0-2}}\\%\normalsize
+{\sf \normalsize {\tt version 1.0.3}}\\%\normalsize
 \vspace{4mm}
-{\bf \large Jan Graffelman}\\
+{\bf \large Jan Graffelman}$^{\dagger,\ddagger}$\\
 \vspace{4mm} \rm \large
-Department of Statistics and Operations Research\\
+$^\dagger$Department of Statistics and Operations Research\\
 Universitat Polit\`ecnica de Catalunya\\
 Avinguda Diagonal 647, 08028 Barcelona, Spain.\\
 jan.graffelman@upc.edu\\
+
 \vspace{4mm}
-{\sc October 2013}
+
+$^\ddagger$Department of Biostatistics\\
+University of Washington\\
+University Tower, 15th Floor\\
+4333 Brooklyn Avenue\\
+Seattle, WA 98105-9461\\
+
+\vspace{2mm}
+
+{\sc September 2022}
+
 \end{center}
 
 \section{Introduction}
 
-This documents gives some instructions on how to create plots of correlation matrices in the statistical 
-environment \proglang{R}~\citep{RRR} using the package \pkg{Correlplot}. The outline of this guide is as follows: 
-Section~\ref{sec:install} explains how to install this package and
-Section~\ref{sec:pictures} shows how to use the functions of the package for creating pictures like correlograms
-and biplots for a given correlation matrix. Computation of goodness-of-fit statistics is also illustrated.
-If you appreciate this software then please cite the following paper in your work:\\
-
-Graffelman, J. (2013) Linear-angle correlation plots: new graphs for revealing correlation structure. 
-{\it Journal of Computational and Graphical Statistics}, {\bf 22}(1) pp. 92-106. 
-\href{http://dx.doi.org/10.1080/15533174.2012.707850 }{(click here to access the paper)}.
+This documents gives some instructions on how to create graphical representations of correlation matrices in the statistical environment \proglang{R}~\citep{RRR} using package \pkg{Correlplot}, using a variety of different statistical methods. We use 
+principal component analysis (PCA), multidimensional scaling (MDS), principal factor analysis (PFA), weighted alternating least squares (WALS), correlograms (CRG) and corrgrams to produces displays of correlation structure.  The outline of this vignette is as follows. Section~\ref{sec:install} explains how to install the \pkg{Correlplot} package. Section~\ref{sec:pictures} shows how to use the functions of the package for creating all graphical representaions (biplots, correlograms, MDS maps, etc.) for a given correlation matrix. The computation of goodness-of-fit statistics is also addressed. All methods are illustrated on a single data set, the wheat kernel 
+data introduced below.
 
 \section{Installation}
 \label{sec:install}
@@ -75,265 +80,305 @@ library("Correlplot")
 library("Correlplot")
 @
 
-This instruction will make, among others, the functions {\tt correlogram}, {\tt linangplot}, {\tt pco} and {\tt pfa} available. The
-correlation matrices used in the paper cited above are included in the package, and can be accessed with 
-the \code{data} instruction. The instruction  \code{data(package="Correlplot")} will give a list of all correlation and data matrices available in the package.
+This will download \pkg{Correlplot} from the CRAN server. This instruction will make, among others, the functions {\tt correlogram}, {\tt pfa}, {\tt ipSymLS} and {\tt rmse} available. Some data sets and correlation matrices are included in the package, and can be accessed with the \code{data} instruction. By typing the instruction \code{data(package="Correlplot")} a list of all correlation and data matrices available in the package will appear. We will also make use of the packages \pkg{calibrate}, \pkg{corrgram} and 
+\pkg{xtable}, and first connect these:
 
-\section{Plots of a correlation matrix}
+<<echo=TRUE>>=
+#install.packages("calibrate")
+#install.packages("corrplot")
+#install.packages("xtable")
+library(calibrate)
+library(corrplot)
+library(xtable)
+@
+
+\section{Graphical representations of a correlation matrix}
 \label{sec:pictures}
 
-In this section we indicate how to create different plots of a correlation matrix, and how to obtain the goodness-of-fit of the displays. We will subsequently treat:
+In this section we indicate how to create different plots of a correlation matrix, and how to obtain the goodness-of-fit of the displays. We will subsequently treat
+the corrgram, the correlogram, the PCA-based correlation biplot, the PFA-based correlation biplot, an MDS-based map of correlation structure and WALS-based correlation biplots. Throughout this vignette, we will use a wheat kernel
+data set taken from the UCI Machine Learning Repository (\url{https://archive.ics.uci.edu/ml/datasets/seeds}) in order to illustrate the different plots. 
 
-\begin{itemize}
-\item The linear-angle correlation scatterplot (subsection~\ref{subsec:linear}).
-\item The principal component analysis (PCA) biplot of a correlation matrix (subsection~\ref{subsec:pca}).
-\item The principal factor analysis biplot (PFA) of a correlation matrix (subsection~\ref{subsec:pfa}).
-\item Correlograms of the correlation matrix (subsection~\ref{subsec:correlo}).
-\end{itemize}
-
-\subsection{Linear-angle correlation scatterplot}
-\label{subsec:linear}
-
-An ordinary scatterplot represents two variables on orthogonal axes. A principal component analysis of two variables gives a biplot with two axes representing the two variables. If the correlation between the two variables is non-zero, then these two variable axes will be oblique. In the latter plot the angle ($\alpha$) sustending the two biplot axes satisfies $\cos{(\alpha)} = r_{xy}$, where $r_{xy}$ is the sample correlation coefficient between the two variables. We first illustrate this plot with Pearson and Lee's classical dataset on heights of daughters and mothers, taken from Weisberg~(\citeyear{Weisberg}).
-
-\begin{figure}[htb]
-\centering
-<<scatterplot,echo=TRUE,fig=TRUE>>=
-data(PearsonLee)
-Mheight <- PearsonLee$Mheight
-Dheight <- PearsonLee$Dheight
-plot(Mheight,Dheight,asp=1,xlab="Mother's height (cm)",
-     ylab="Daughter's height (cm)",pch=19,cex=0.05)
-@
-\caption{Scatter plot of daughter's height versus mother's height for \Sexpr{length(Mheight)} pairs.}
-\label{fig:scatter}
-\end{figure}
-\clearpage
-A scatterplot of the data is shown in Figure~\ref{fig:scatter}. Next, we create a PCA biplot of the correlation matrix, shown in Figure~\ref{fig:pcabiplot}.
-
-\begin{figure}[htb]
-\centering
-<<biplot,echo=TRUE,fig=TRUE>>=
-X <- cbind(Mheight,Dheight)
-n <- nrow(X)
-Xt <- scale(X)/sqrt(n-1)
-res.svd <- svd(Xt)
-Fs <- sqrt(n-1)*res.svd$u
-Gp <- res.svd$v%*%diag(res.svd$d)
-plot(Fs[,1],Fs[,2],asp=1,pch=19,cex=0.05,xlab="First principal component",
-     ylab="Second principal component")
-arrows(0,0,3*Gp[,1],3*Gp[,2],col="red",lwd=2)
-textxy(3*Gp[,1],3*Gp[,2],colnames(X),cex=1)
-@
-\caption{PCA biplot of the mother-daughter height data.}
-\label{fig:pcabiplot}
-\end{figure}
-
-
-<<echo=FALSE>>=
-M <- Gp%*%t(Gp)
-alpha <- acos(M[1,2])
-ang <- alpha*180/pi
-@ 
-The correlation between the two variable is \Sexpr{round(cor(Mheight,Dheight),digits=3)}. The angle
-between the two vectors in $\Sexpr{round(ang,digits=2)}^{\circ}$, and we verify 
-$cos(\Sexpr{round(ang,digits=2)}) =  \Sexpr{round(cor(Mheight,Dheight),digits=3)}$.
-
-\clearpage
-Finally, we call \code{linangplot} in order to create the linear angle scatterplot shown in 
-Figure~\ref{fig:linang}
-
-\begin{figure}[htb]
-\centering
-<<linangplot,echo=TRUE,fig=TRUE>>=
-lin.out <- linangplot(Mheight,Dheight,cex=0.05)
-@
-\caption{Linear angle correlation scatterplot of the mother-daughter height data.}
-\label{fig:linang}
-\end{figure}
-
-In the latter plot, the angle between the two axis is $\Sexpr{round(lin.out$angledegrees,digits=2)}^{\circ}$ degrees.
-In this plot the relation between the correlation and the angle is linear ($r_{xy} = 1 -\frac{2}{\pi} \alpha $), and we
-have $1 - \frac{2}{\pi} \Sexpr{round(lin.out$angleradians,digits=3)}$ = $\Sexpr{round(lin.out$r,digits=3)}$.
-Because the rank of the correlation matrix in these examples is 2, Figures~\ref{fig:pcabiplot} and~\ref{fig:linang} both represent the correlation coefficient without error.
-
-\subsection{PCA biplot of  the correlation matrix}
-\label{subsec:pca}
-
-We use a larger, classical data set of 5 variables with grades of students on 5 exams~\citep{Mardia} to illustrate PCA biplots,
-PFA biplots and correlograms, as well as the corresponding goodness-of fit calculations.  The sample correlation matrix is given in
-Table~\ref{tab:sampleR}.
-
-<<echo=FALSE,results=tex>>=
-library(xtable)
-data(students)
-R <- cor(students)
-xtable(R,digits=3,caption="Correlation matrix for student grades on 5 subjects (Mec=Mecanics,Vec=Vectors,Alg=Algebra,Ana=Analysis,Sta=Statistics).",label="tab:sampleR")
-@  
-
-The PCA biplot of the correlation matrix can be obtained from a PCA of the data matrix, or, as shown here, directly from the spectral decomposition of the correlation matrix.
-
-\begin{figure}[htb]
-\centering
-<<pcaplot,echo=TRUE,fig=TRUE>>=
-data(students)
-R <- cor(students)
-out.eigen <- eigen(R)
-V <- out.eigen$vectors
-D <- diag(out.eigen$values)
-F <- V%*%sqrt(D)
-plot(F[,1],F[,2],pch=19,asp=1,xlim=c(-1,1),ylim=c(-1,1))
-origin()
-arrows(0,0,F[,1],F[,2])
-textxy(F[,1],F[,2],colnames(R),cex=1)
-@
-\caption{PCA Biplot of a correlation matrix of student grades on 5 exams.}
-\label{fig:pcamardia}
-\end{figure}
-\clearpage
-
-The plot shows sharp angles for all exams, revealing positive correlations. The two dimensional 
-approximation ($\bhat{\bR}$) made by PCA to the correlation matrix by using cosines is shown in 
-Table~\ref{tab:pcahat}.
-
-\begin{table}[ht]
-\centering
-\begin{tabular}{rrrrrr}
-  \hline
- & Mec(c) & Vec(c) & Alg(o) & Ana(o) & Sta(o) \\ 
-  \hline
-Mec(c) & 1.000 & 0.979 & 0.708 & 0.497 & 0.418 \\ 
-  Vec(c) & 0.979 & 1.000 & 0.836 & 0.662 & 0.593 \\ 
-  Alg(o) & 0.708 & 0.836 & 1.000 & 0.965 & 0.938 \\ 
-  Ana(o) & 0.497 & 0.662 & 0.965 & 1.000 & 0.996 \\ 
-  Sta(o) & 0.418 & 0.593 & 0.938 & 0.996 & 1.000 \\ 
-   \hline
-\end{tabular}
-\caption{Least squares approximation by cosines to the correlation matrix obtained by PCA.}
-\label{tab:pcahat}
-\end{table}
-
-The amount of error in the representation of the correlation matrix is expressed as the root mean squared error (RMSE)
-of the below-diagonal elements of $\bR$, and is for this PCA plot 0.093 if correlations are approximated by scalar products,
-and 0.248 if correlations are approximated by cosines.
-
-\subsection{PFA biplots of  a correlation matrix}
-\label{subsec:pfa}
-
-Principal factor analysis can be performed by the function \code{pfa} of package \pkg{Correlplot}. This function is an adaptation of matlab code provided by Albert Satorra~(\citeyear{Satorra}).
+The wheat kernel data~\citep{Charytanowicz} consists of 210 wheat kernels, of which the variables 
+{\it area} ($A$), {\it perimeter} ($P$), {\it compactness} ($C = 4*\pi*A/P^2$), 
+{\it length}, {\it width}, {\it asymmetry coefficient} and {\it groove} (length of kernel groove) were registered. There are 70 kernels of each of the varieties {\it Kama}, {\it Rosa} and {\it Canadian}; here we will only use the kernels of variety 
+{\it Kama}. The data is made available with: 
 
 <<echo=TRUE>>=
-out.pfa <- pfa(students)
-L <- out.pfa$La
-@ 
-
-\begin{figure}[htb]
-\centering
-<<pfaplot,echo=TRUE,fig=TRUE>>=
-plot(L[,1],L[,2],pch=19,asp=1,xlim=c(-1,1),ylim=c(-1,1))
-origin()
-arrows(0,0,L[,1],L[,2])
-text(L[,1],L[,2],colnames(students),cex=1,pos=c(1,2,2,2,3))
-@ 
-\caption{Plot of the correlation matrix of student grades on 5 exams obtained by principal factor analysis.}
-\label{fig:pfamardia}
-\end{figure}
-
-The corresponding plot of the correlation matrix is shown in Figure~\ref{fig:pfamardia}. The approximation to
-the correlation matrix is given by
-
-<<echo=TRUE>>=
-Rhatpfa <- L[,1:2]%*%t(L[,1:2])
+library(Correlplot)
+data("Kernels")
+X <- Kernels[Kernels$variety==1,]
+X <- X[,-8]
+head(X)
 @
 
-and is shown in Table~\ref{tab:pfahat} below.
-\clearpage
+The correlation matrix of the variables is given by:
 
-<<echo=FALSE,results=tex>>=
-rownames(Rhatpfa) <- rownames(R)
-colnames(Rhatpfa) <- colnames(R)
-xtable(Rhatpfa,digits=3,
-       caption="Least squares approximation, using scalar products, to the correlation matrix obtained by PFA.",
-       label="tab:pfahat")
+<<echo=TRUE,results=tex>>=
+R <- cor(X)
+xtable(R,digits=3)
 @
 
-The RMSE of the plot obtained by PFA is 0.004, and this is lower than the RMSE obtained by PCA.
+\paragraph{The corrgram}
 
-\subsection{Correlograms of a correlation matrix}
-\label{subsec:correlo}
-
-The correlogram proposed by Trosset~(\citeyear{Trosset}) can be obtained by the instructions:
-
-<<echo=TRUE,fig=FALSE>>=
-correlogram(R,labs=colnames(R),main="",
-            xlim=c(-1.3,1.3),ylim=c(-1.3,1.3))
-@ 
-
-and is shown in Figure~\ref{fig:correlogramMardia}
-
-\begin{figure}[htb]
-\centering
-<<echo=FALSE,fig=TRUE>>=
-correlogram(R,labs=colnames(R),main="",xlim=c(-1.3,1.3),ylim=c(-1.3,1.3))
-@ 
-\caption{Correlogram of the matrix of student grades on 5 exams.}
-\label{fig:correlogramMardia}
-\end{figure}
-\clearpage
-The approximation this gives to the correlation matrix is given by
-
-<<echo=TRUE>>=
-angles <- fit_angles(R)
-Rhatcor <- angleToR(angles)
-@ 
-
-and this approximation is shown below in Table~\ref{tab:corcos}.
-
-<<echo=FALSE,results=tex>>=
-rownames(Rhatcor) <- rownames(R)
-colnames(Rhatcor) <- colnames(R)
-xtable(Rhatcor,digits=3,
-       caption="Approximation to the correlation matrix obtained by a correlogram.",
-       label="tab:corcos")
-@
-
-The RMSE of this approximation is 0.224. In the correlogram in Figure~\ref{fig:correlogramMardia} correlations are 
-approximated by cosines of angles. A correlogram with correlations that are linear in the angle is shown in
-Figure~\ref{fig:lincorrelogramMardia} below.
+The corrgram~(\citep{Friendly}) is a tabular display of the entries of a correlation matrix that uses colour and shading to represent correlations. Corrgrams can be made with the fuction {\tt corrplot}. 
 
 \begin{figure}[htb]
 \centering
 <<echo=TRUE,fig=TRUE>>=
-correlogram(R,ifun="lincos",labs=colnames(R),main="",
+#install.packages("corrplot")
+library(corrplot)
+R <- cor(X)
+corrplot(R, method="circle",type="lower")
+@
+\end{figure}
+
+This shows most correlations are positive, and correlations with {\it asymmetry} are weak.
+
+\clearpage
+
+\paragraph{The correlogram}
+
+The correlogram~(\citep{Trosset}) represents correlations by the cosines between vectors. 
+
+<<echo=TRUE,fig=TRUE>>=
+theta.cos <- correlogram(R,main="Correlogram wheat kernels",
             xlim=c(-1.3,1.3),ylim=c(-1.3,1.3))
 @ 
-\caption{Correlogram with linear interpretation rule of the matrix of student grades on 5 exams.}
-\label{fig:lincorrelogramMardia}
+
+The approximation this gives to the correlation matrix calculated by
+
+<<echo=TRUE>>=
+Rhat.cor <- angleToR(theta.cos)
+@ 
+
+and the root mean squared error (RMSE) of the approximation, is calculated as
+
+<<echo=TRUE>>=
+rmse.crg <- rmse(R,Rhat.cor,verbose=TRUE)
+@
+
+which shows this representation has a large amount of error. The correlogram can be modified by
+using a linear interpretation rule, rendering correlations linear in the 
+angle~\citep{Graffel23}. This representation is obtained by:
+
+\begin{figure}[htb]
+\centering
+<<echo=TRUE,fig=TRUE>>=
+theta.lin <- correlogram(R,ifun="lincos",labs=colnames(R),
+                         main="Linear Correlogram",
+                         xlim=c(-1.3,1.3),ylim=c(-1.3,1.3))
+@
 \end{figure}
 \clearpage
 
 The approximation to the correlation matrix by using this linear interpretation function is calculated by
 
 <<echo=TRUE>>=
-theta_lin <- fit_angles(R)
-Rhatcorlin <- angleToR(theta_lin,ifun="lincos")
+Rhat.corlin <- angleToR(theta.lin,ifun="lincos")
+rmse.lin <- rmse(R,Rhat.corlin,verbose=TRUE)
 @ 
 
-and is shown in Table~\ref{tab:corcoslin} below.
+The linear representation is seen to improve the approximation. 
 
-<<echo=FALSE,results=tex>>=
-rownames(Rhatcorlin) <- rownames(R)
-colnames(Rhatcorlin) <- colnames(R)
-xtable(Rhatcorlin,digits=3,
-       caption="Approximation to the correlation matrix obtained by a linear correlogram.",
-       label="tab:corcoslin")
+\paragraph{The PCA biplot of the correlation matrix} 
+We create a PCA biplot of the correlation matrix, doing the calcutions for a PCA by hand, using the singular value decomposition of the (scaled) standardized data. Alternatively, standard R function \code{princomp} may be used to obtain the coordinates needed for the correlation biplot. We use function \code{bplot} from package \pkg{calibrate} to make the biplot:
+
+\newpage
+
+\begin{figure}[htb]
+\centering
+<<biplot,echo=TRUE,fig=TRUE>>=
+n <- nrow(X)
+Xt <- scale(X)/sqrt(n)
+res.svd <- svd(Xt)
+Fs <- sqrt(n)*res.svd$u
+Gp <- res.svd$v%*%diag(res.svd$d)
+bplot(Fs,Gp,colch=NA,collab=colnames(X),
+      xlab = "First principal component",
+      ylab="Second principal component")
+@
+\end{figure}
+
+\clearpage
+
+The joint representation of kernels and variables emphasizes this is a biplot of the (standardized) data matrix. However, this plot is a {\it double biplot} because scalar products between variable vectors approximate the correlation matrix. We stress this by
+plotting the variable vectors only, and adding a unit circle:
+
+\begin{figure}[htb]
+\centering
+<<echo=TRUE,fig=TRUE>>=
+bplot(Gp,Gp,colch=NA,rowch=NA,collab=colnames(X),
+      xl=c(-1,1),yl=c(-1,1))
+circle()
+@
+\end{figure}
+
+The PCA biplot of the correlation matrix can be obtained from a correlation-based PCA or also directly from the spectral decomposition of the correlation matrix. The rank two approximation, by scalar products between vectors, and the RMSE are calculated by:
+
+<<echo=TRUE>>=
+Rhat.pca <- Gp[,1:2]%*%t(Gp[,1:2])
+rmse.pca <- rmse(R,Rhat.pca,verbose=TRUE)
 @
 
-The RMSE of this last approximation is 0.136.
+which is a considerable improvement over the previous correlograms. 
+
+\clearpage
+
+\paragraph{The MDS map of a correlation matrix}
+
+We transform correlations to distances with the $\sqrt{2(1-r)}$ transformation, and use
+the {\tt cmdscale} function from the \pkg{stats} package to perform metric multidimensional scaling. We mark negative correlations with a dashed red line.
+
+\begin{figure}[htb]
+\centering
+<<echo=TRUE,fig=TRUE>>=
+Di <- sqrt(2*(1-R))
+out.mds <- cmdscale(Di,eig = TRUE)
+Fp <- out.mds$points
+plot(Fp[,1],Fp[,2],asp=1,xlab="First principal axis",
+     ylab="Second principal axis")
+textxy(Fp[,1],Fp[,2],colnames(R),cex=0.75)
+
+ii <- which(R < 0,arr.ind = TRUE)
+
+for(i in 1:nrow(ii)) {
+  segments(Fp[ii[i,1],1],Fp[ii[i,1],2],
+           Fp[ii[i,2],1],Fp[ii[i,2],2],col="red",lty="dashed")
+}
+@
+\end{figure}
+
+We calculate distances in the map, convert back to correlations, and compute the RMSE.
+
+<<echo=TRUE>>=
+Dest <- as.matrix(dist(Fp[,1:2]))
+Rhat.mds <- 1-0.5*Dest*Dest
+rmse.mds <- rmse(R,Rhat.mds,verbose=TRUE)
+@
+
+The approximation by distance worsens with respect to the representation by scalar products in PCA.
+
+\paragraph{The PFA biplot of a correlation matrix}
+
+Principal factor analysis can be performed by the function \code{pfa} of package \pkg{Correlplot}.
+
+<<echo=TRUE>>=
+out.pfa <- pfa(X)
+L <- out.pfa$La
+@ 
+
+The biplot of the correlation matrix obtained by PFA is in fact the same as what is known as a factor loading plot in factor analysis, to which a unit circle can 
+be added. The approximation to the correlation matrix and its RMSE are calculated as:
+
+<<echo=TRUE>>=
+Rhat.pfa <- L[,1:2]%*%t(L[,1:2])
+rmse.pfa <- rmse(R,Rhat.pfa,verbose=TRUE)
+@
+
+To make the factor loading plot, aka PFA biplot of the correlation matrix:
+
+\begin{figure}[htb]
+\centering
+<<pfaplot,echo=TRUE,fig=TRUE>>=
+opar <- par(bty="n",xaxt="n",yaxt="n")
+plot(L[,1],L[,2],pch=NA,asp=1,xlim=c(-1,1),ylim=c(-1,1),
+     xl="Factor 1",yl="Factor 2")
+origin()
+arrows(0,0,L[,1],L[,2],angle=10,length=0.1,col="blue")
+textxy(L[,1],L[,2],colnames(X),cex=1)
+circle()
+par(opar)
+@ 
+\end{figure}
+
+\clearpage
+
+The RMSE of the plot obtained by PFA is lower than the RMSE obtained by PCA. Note that
+variable {\it Area} reaches the unit circle for having a communality of 1. 
+
+\paragraph{The WALS biplot of a correlation matrix}
+
+The correlation matrix can also be factored using weighted alternating least squares, avoiding the fit of the ones on the diagonal of the correlation matrix by assigning them weight 0, using function {\tt ipSymLS} \citep{DeLeeuw}. 
+
+<<echo=TRUE>>=
+W <- matrix(1,nrow(R),nrow(R))
+diag(W) <- 0
+Fp.als <- ipSymLS(R,w=W,eps=1e-15)
+@
+
+
+<<echo=TRUE,fig=TRUE>>=
+bplot(Fp.als,Fp.als,rowch=NA,colch=NA,collab=colnames(R),
+      xl=c(-1.2,1.2),yl=c(-1.2,1.2),main="WALS")
+circle()
+@
+
+Weighted alternating least squares has, in contrast to PFA, no restriction on the vector length, and variable {\it Top} is seen to move out of the unit circle.
+
+<<echo=TRUE>>=
+Rhat.wals <- Fp.als%*%t(Fp.als)
+rmse.als <- rmse(R,Rhat.wals,verbose=TRUE)
+@
+
+This is only slightly below the RMSE of PFA.
+
+\paragraph{The WALS biplot of an adjusted correlation matrix}
+
+The adjusted correlation matrix is calculated as ${\mathbf R}_a = {\mathbf R} - \delta {\mathbf J}$. By exploring the RMSE over a grid of values for $\delta$, as shown in the figure below, $\delta = 0.07$ is found to be the optimum value. 
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.5\textwidth]{DeltaPlot.pdf}
+\end{figure}
+
+Function \code{ipSymLS} is applied to the adjusted correlation by subtracting $\delta$. When calculating the fitted correlation matrix, $\delta$ is added
+back.
+
+<<echo=TRUE,>>=
+delta <- 0.07
+W <- matrix(1,nrow(R),nrow(R))
+diag(W) <- 0
+Fp.adj <- ipSymLS(R-delta,w=W,verbose=FALSE,eps=1e-10,itmax=1000)
+@
+
+
+\begin{figure}[htb]
+\centering
+<<echo=TRUE,fig=TRUE>>=
+bplot(Fp.adj,Fp.adj,rowch=NA,colch=NA,collab=colnames(R),
+      xl=c(-1.3,1.3),yl=c(-1.3,1.3),main="WALS adjusted")
+circle()
+@
+\end{figure}
+
+The fitted correlation matrix and its RMSE are now calculated as:
+
+<<echo=TRUE>>=
+Rhat.adj <- Fp.adj%*%t(Fp.adj) + delta
+rmse.adj <- rmse(R,Rhat.adj,verbose=TRUE)
+@
+
+This comes closer to the sample correlation matrix than WALS without adjustment.
+
+\clearpage
+
+We summarize the values of the RMSE of all methods in a table below:
+
+<<echo=TRUE,results=tex>>=
+rmsevector <- c(rmse.crg,rmse.lin,rmse.pca,rmse.mds,rmse.pfa,rmse.als,rmse.adj)
+methods <- c("Correlogram (cosine)","Correlogram (linear)","PCA","MDS",
+"PFA","WALS R","WALS Radj")
+xtable(data.frame(methods,rmsevector),digits=c(0,0,4))
+@
+
+
+
+\clearpage
 
 \section*{Acknowledgements}
 
-This work was partially supported by grants ECO2011-28875 and CODARSS MTM2012-33236 of the Spanish Ministry of Education and Science. I thank Albert Satorra for supplying the MATLAB code for principal factor analysis. This document was generated by Sweave~\citep{Leisch}.
+This work was supported by the Spanish Ministry of Science, Innovation and Universities and the European Regional Development Fund under Grant RTI2018-095518-B-C22 (MCIU/AEI/FEDER); and the National Institutes of Health under Grant GM075091.
 
 \bibliographystyle{humanbio}
 \bibliography{Correlplot}

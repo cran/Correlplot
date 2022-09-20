@@ -9,6 +9,6 @@
 \format{dataframe with Mheight and Dheight}
 \source{Weisberg, Chapter 1}
 \references{Weisberg, S. (2005) \emph{Applied Linear Regression}, John
-  Wiley \& Sons, New Jersey}
+  Wiley & Sons, New Jersey}
 \keyword{datasets}
      

@@ -7,8 +7,8 @@ Plot a correlogram
 \code{correlogram} plots a correlogram for a correlation matrix.
 }
 \usage{
-correlogram(R,labs=colnames(R),ifun="cos",cex=1,main="",ntrials=10,
-            xlim=c(-1.2,1.2),ylim=c(-1.2,1.2),...)
+correlogram(R,labs=colnames(R),ifun="cos",cex=1,main="",ntrials=50,
+            xlim=c(-1.2,1.2),ylim=c(-1.2,1.2),pos=NULL,...)
 }
 \arguments{
   \item{R}{a correlation matrix.}
@@ -19,6 +19,7 @@ correlogram(R,labs=colnames(R),ifun="cos",cex=1,main="",ntrials=10,
   \item{ntrials}{number of starting points for the optimization routine}
   \item{xlim}{limits for the x axis (e.g. c(-1.2,1.2))}
   \item{ylim}{limits for the y axis (e.g. c(-1.2,1.2))}
+  \item{pos}{if specified, overrules the calculated label positions for the variables.}
   \item{\dots}{additional arguments for the \code{plot} function.}
 }
 \details{
@@ -26,17 +27,17 @@ correlogram(R,labs=colnames(R),ifun="cos",cex=1,main="",ntrials=10,
 angles. All angles are given w.r.t the positive x-axis. Variables are
 represented by unit vectors emanating from the origin.
 }
-\value{NULL}
+\value{A vector of angles}
 \references{Trosset, M.W. (2005) Visualizing correlation. Journal of Computational and Graphical Statistics
   14(1), pp. 1--19}
-\author{ anonymous }
+\author{ Jan Graffelman (jan.graffelman@upc.edu) }
 \seealso{
 \code{\link{fit_angles}},\code{\link{nlminb}}
 }
 \examples{
 X <- matrix(rnorm(90),ncol=3)
 R <- cor(X)
-correlogram(R)
+angles <- correlogram(R)
 }
 \keyword{hplot}
 

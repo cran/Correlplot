@@ -7,7 +7,7 @@
 \format{A matrix of correlations}
 \source{Weisberg (2005), file cathedral.txt}
 \references{
-   Weisberg, S. (2005) \emph{Applied Linear Regression}. Third edition, John Wiley \& Sons,
+   Weisberg, S. (2005) \emph{Applied Linear Regression}. Third edition, John Wiley & Sons,
    New Jersey.
 }
 \keyword{datasets}

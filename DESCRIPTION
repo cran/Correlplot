@@ -1,16 +1,16 @@
 Package: Correlplot
 Type: Package
-Title: A collection of functions for graphing correlation matrices
-Version: 1.0-2
-Date: 2013-10-12
+Title: A Collection of Functions for Graphing Correlation Matrices
+Version: 1.0.3
+Date: 2022-09-15
 Author: Jan Graffelman
 Maintainer: Jan Graffelman <jan.graffelman@upc.edu>
 Depends: R (>= 1.8.0), calibrate
-Imports: xtable
-Description: Correlplot contains diverse routines for the construction of different plots for representing correlation matrices.
+Imports: corrplot, xtable, MASS
+Description: Routines for the graphical representation of correlation matrices by means of correlograms, biplots and MDS maps.
 License: GPL (>= 2)
-URL: http://www.r-project.org, http://www-eio.upc.es/~jan
-Packaged: 2013-10-13 16:22:37 UTC; Beagle
+URL: https://www.r-project.org, http://www-eio.upc.es/~jan/
 NeedsCompilation: no
+Packaged: 2022-09-20 10:12:41 UTC; jangr
 Repository: CRAN
-Date/Publication: 2013-10-13 19:40:50
+Date/Publication: 2022-09-20 22:40:09 UTC
