@@ -1,4 +1,4 @@
-cd6db272bd5521215b037c545e43491b *DESCRIPTION
+6385d01f5b6319e913cf73b13a79769b *DESCRIPTION
 6e43902c5057420d35514bc3e90cd218 *NAMESPACE
 760e2b2a6660d2dd3b14444d877b45cd *R/angleToR.R
 5e3db52e3d25488c325fec0bddfe8886 *R/correlogram.R
@@ -30,8 +30,8 @@ b49928a439de6c11b871171796e93266 *data/storksR.rda
 aba02626fbd880dad73745600d1babc2 *data/students.rda
 1495a1123174c0bfc96defe5d4b5470f *data/studentsR.rda
 d64c9b3368a9ba96e1abe12ec9353bb7 *inst/doc/Correlplot.R
-c06eb90b336347ed6699ee82efb065bf *inst/doc/Correlplot.Rnw
-9ba875caf4652fb34c781cc05d93bbf8 *inst/doc/Correlplot.pdf
+a3e2366d057b1f43fd3bb1240883ec70 *inst/doc/Correlplot.Rnw
+dad24d4f2a9ca35e3e9ac25e1d9907f4 *inst/doc/Correlplot.pdf
 9d47ac1440a556949294cf2434a997a6 *man/HeartAttack.Rd
 3e6b98dbc947ba54db97b84f8697071d *man/Kernels.Rd
 9a44f82cd006d2885880be7c207c08a2 *man/PearsonLee.Rd
@@ -63,6 +63,6 @@ b416d433ba86792cebe2bc252cb75f8e *man/students.Rd
 62fbcabe5d550fdb234182ddb9bbd11e *vignettes/Correlplot-019.pdf
 836c95af2cce31d554de581b6c359049 *vignettes/Correlplot-021.pdf
 0b8fc3889f5752ffba35b929610c7274 *vignettes/Correlplot-022.pdf
-c06eb90b336347ed6699ee82efb065bf *vignettes/Correlplot.Rnw
+a3e2366d057b1f43fd3bb1240883ec70 *vignettes/Correlplot.Rnw
 2f5d163be8a29dc12eb8e4937cd6ac83 *vignettes/Correlplot.bib
 63c2ff17e3bba86b35194c991545519b *vignettes/DeltaPlot.pdf

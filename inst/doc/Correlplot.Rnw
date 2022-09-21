@@ -36,7 +36,7 @@
 \sf
 {\sf \bf \Large Correlplot: a collection of functions for the graphical representation of correlation matrices}\\
 \vspace{4mm}
-{\sf \normalsize {\tt version 1.0.3}}\\%\normalsize
+{\sf \normalsize {\tt version 1.0.4}}\\%\normalsize
 \vspace{4mm}
 {\bf \large Jan Graffelman}$^{\dagger,\ddagger}$\\
 \vspace{4mm} \rm \large
@@ -372,15 +372,11 @@ methods <- c("Correlogram (cosine)","Correlogram (linear)","PCA","MDS",
 xtable(data.frame(methods,rmsevector),digits=c(0,0,4))
 @
 
-
-
-\clearpage
+\bibliographystyle{abbrvnat}
+\bibliography{Correlplot}
 
 \section*{Acknowledgements}
 
 This work was supported by the Spanish Ministry of Science, Innovation and Universities and the European Regional Development Fund under Grant RTI2018-095518-B-C22 (MCIU/AEI/FEDER); and the National Institutes of Health under Grant GM075091.
-
-\bibliographystyle{humanbio}
-\bibliography{Correlplot}
 
 \end{document}
