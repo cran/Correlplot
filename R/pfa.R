@@ -1,5 +1,4 @@
-pfa <-
-function(X, option="data", m=2, initial.communality ="R2", crit=0.001, verbose = FALSE)
+pfa <- function(X, option="data", m=2, initial.communality ="R2", crit=0.001, verbose = FALSE)
 {
 S <- switch(option, cor = X, cov = X, data = cor(X), stop("pfa: invalid value for parameter option")) 
 p <- ncol(X)
@@ -12,8 +11,10 @@ if(initial.communality=="maxcor") {
   diag(Rn) <- 0
   comu <- apply(Rn,1,max)
 }
-cat("Initial communalities\n")
-print(comu)
+if(verbose) {
+  cat("Initial communalities\n")
+  print(comu)
+  }
 L <- diag(svd(S)$d)
 V <- svd(S)$u
 A <- as.matrix(V[,1:m])%*%as.matrix(sqrt(L[1:m,1:m]))
@@ -41,17 +42,24 @@ if(verbose) {
 }
 La <- A
 Psi <- diag(diag(S)- comu)
-cat("Final communalities\n")
-print(comu)
-cat(niter," iterations till convergence\n")
-cat("Specific variances:\n")
-print(diag(Psi))
+colnames(Psi) <- colnames(X)
+rownames(Psi) <- colnames(X)
+rownames(La) <- colnames(X)
+if(verbose) {
+  cat("Final communalities\n")
+  print(comu)
+  cat(niter," iterations till convergence\n")
+  cat("Specific variances:\n")
+  print(diag(Psi))
+}
 Shat <- (La%*%t(La) + Psi)
-cat("Variance explained by each factor\n")
 Dv <- diag(t(La)%*%La)
-print(Dv)
-cat("Loadings:\n")
-print(La)
+if(verbose) {
+  cat("Variance explained by each factor\n")
+  print(Dv)
+  cat("Loadings:\n")
+  print(La)
+  }
 Res <- S - La%*%t(La) + Psi
 if(option=="data") {
   Xs <- scale(X)

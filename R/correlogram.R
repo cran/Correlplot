@@ -7,8 +7,8 @@ correlogram <- function (R, labs = colnames(R), ifun = "cos", cex = 1,
   X <- matrix(c(cos(theta), sin(theta)), ncol = 2)
   if (is.null(labs)) 
     labs <- 1:ncol(R)
-  opar <- par(pty = "s", bty = "n", xaxt = "n", 
-              yaxt = "n")
+  opar <- par(pty = "s", bty = "n", xaxt = "n", yaxt = "n",
+  xpd = TRUE)
   plot(0, 0, type = "n", xlab = "", ylab = "", 
        xlim = xlim, ylim = ylim, main = main, ...)
   #  points(X[, 1], X[, 2], pch = 19)

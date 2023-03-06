@@ -21,7 +21,10 @@ ipSymLS(target, w = matrix(1, dim(target)[1], dim(target)[2]), ndim = 2,
   \item{verbose}{Show the iteration history (\code{verbose=TRUE}) or not (\code{verbose=FALSE})}
 }
 \value{A matrix with the coordinates for the variables}
-\references{De Leeuw, J. (2006) A decomposition method for weighted least squares low-rank approximation of symmetric matrices. Department of Statistics, UCLA. Retrieved from https://escholarship.org/uc/item/1wh197mh}
+\references{De Leeuw, J. (2006) A decomposition method for weighted least squares low-rank approximation of symmetric matrices. Department of Statistics, UCLA. Retrieved from https://escholarship.org/uc/item/1wh197mh
+
+Graffelman, J. and De Leeuw, J. (2023) Improved approximation and visualization of the correlation matrix. The American Statistician pp. 1--20. Available online as latest article  \doi{10.1080/00031305.2023.2186952}
+}
 \author{deleeuw@stat.ucla.edu}
 \examples{
 data(banknotes)
@@ -29,6 +32,6 @@ R <- cor(banknotes)
 W <- matrix(1,nrow(R),nrow(R))
 diag(W) <- 0
 Fp.als <- ipSymLS(R,w=W,verbose=TRUE,eps=1e-15)
-Rhat.als <- Fp.als%*%t(Fp.als)
+Rhat.als <- Fp.als\%*\%t(Fp.als)
 }
 \keyword{optimize}
