@@ -22,7 +22,7 @@
   }
 }
 \source{Table 18.1, (Saporta 1990, pp. 452--454)}
-\references{Saporta, G. (1990) Probabilit\'{e}s analyse des donn\'{e}es et statistique. Paris,\'{E}ditions technip}
+\references{Saporta, G. (1990) Probabilites analyse des donnees et statistique. Paris, Editions technip}
 \examples{
 data(HeartAttack)
 str(HeartAttack)

@@ -1,41 +1,33 @@
-rmse <- function(R,Rhat,W=matrix(1,nrow=nrow(R),ncol=ncol(R)),omit.diagonal=TRUE,verbose=FALSE,per.variable=FALSE) {
-  #
-  # calculate root mean squared error of approximation
-  #
+rmse <- function(R, Rhat, 
+                     W = matrix(1,nrow(R),ncol(R)) - diag(nrow(R)),
+                     verbose = FALSE, per.variable = FALSE)  { 
   p <- ncol(R)
-  if(verbose) cat(p,"variables\n")
-  if(omit.diagonal) {
-     diag(W) <- 0
-  }
-  E  <- R - Rhat
-  E2 <- W*(E*E)
-  nonzero <- rowSums(W!=0)
-  rmse.per.var <- sqrt(rowSums(E2)/nonzero)
-  if(!omit.diagonal) {
-    nelem <- sum(W!=0)
-    E2 <- W*(E*E)
-    sse <- sum(E2)
-    mse <- sse/(nelem)
-    y <- sqrt(mse)
-    if(verbose) {
-      cat("rmse (full matrix) = ",y,"\n")
-      print(rmse.per.var)
+  rmse.per.var <- rep(NA, p)
+  names(rmse.per.var) <- colnames(R)
+  rmse.overall <- NA
+  E <- R - Rhat
+  WE2 <- W * (E * E)
+  num <- sum(WE2)
+  den <- sum(W)
+  rmse.overall <- sqrt(num/den)
+  if(per.variable) {
+    for(i in 1:p) {
+      numi <- sum(WE2[i,]) + sum(WE2[,i]) - WE2[i,i]
+      deni <- sum(W[i,]) + sum(W[,i]) - W[i,i]
+      rmse.per.var[i] <- sqrt(numi/deni)
     }
-  } else {
-    El <- E[lower.tri(E)]
-    Wl <- W[lower.tri(W)]
-    nelem <- sum(Wl!=0)
-    El2 <- Wl*El*El
-    sse <- sum(El2)
-    mse <- sse/(nelem)
-    y <- sqrt(mse)
-    if(verbose) {
-      cat("rmse (below-diagonal) = ",y,"\n")
+  }
+  if (verbose) {
+    cat(p, "variables\n")
+    cat("weight matrix:\n")
+    print(W)
+    cat("RMSE = ",rmse.overall,"\n")
+    if (per.variable) {
       print(rmse.per.var)
     }
   }
   if(!per.variable) {
-    return(y)
+    return(rmse.overall)
   } else {
     return(rmse.per.var)
   }

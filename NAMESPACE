@@ -1,10 +1,11 @@
-export (angleToR,FitRwithPCAandWALS,Keller,linangplot,lincos,correlogram,
-        fit_angles,ipSymLS,pfa,pco,rmse,rmsePCAandWALS,tr,wAddPCA)
+export (angleToR,FitRwithPCAandWALS,FitRDeltaQSym,ggcorrelogram,Keller,linangplot,lincos,correlogram,
+        fit_angles,ggbplot,ggtally,ipSymLS,jointlim,pfa,pco,rmse,rmsePCAandWALS,tally,tr,wAddPCA)
 import (calibrate)
 import (corrplot)
 import (xtable)
 import (MASS)
 import (lsei)
+import (ggplot2)
 importFrom("stats", "cor", "cov", "nlminb", "runif", "var")
-importFrom("graphics", "arrows", "par", "text")
+importFrom("graphics", "arrows", "par", "text", "points", "segments")
 

@@ -35,7 +35,12 @@ ipSymLS <- function(target, w=matrix(1,dim(target)[1], dim(target)[2]),
                                            format="f"),
                   "Current Loss:",formatC(nloss,digits=6,width=12,format="f"),
                   "\n")
-  if(((oloss-nloss) < eps) || (itel==itmax)) break()
+  if(((oloss-nloss) < eps)) break()
+  if((itel==itmax)) {
+      cat(paste("Maximum number of inner iterations (",itmax,") reached.\n",sep=""))
+      cat("Algorithm ipSymLS may not have converged.\n") 
+     break()
+  }
   oloss <- nloss;
   itel <- itel + 1
 }

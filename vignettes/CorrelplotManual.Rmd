@@ -1,0 +1,548 @@
+---
+title: "Visualization of a correlation matrix with the Correlplot package"
+author:
+- Jan Graffelman - Universitat Politecnica de Catalunya; University of Washington
+- Jan de Leeuw - University of California Los Angeles
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+bibliography: Correlplot.bib
+vignette: >
+  %\VignetteIndexEntry{Visualization of a correlation matrix with the Correlplot package}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+knitr::opts_chunk$set(fig.align = "center")
+knitr::opts_chunk$set(fig.width = 6, fig.height = 6) 
+```
+
+## Introduction
+
+This documents gives some instructions on how to create graphical representations of a correlation matrix in the statistical environment R with package `Correlplot`, using a variety of different statistical methods (@GraffelmanDeLeeuw;  @GraffelmanDeLeeuw2). We use principal component analysis (PCA), multidimensional scaling (MDS), principal factor analysis (PFA), weighted alternating least squares (WALS), correlograms (CRG) and corrgrams to produce displays of correlation structure. The next section shows how to use the functions of the package in order to create the different graphical representations, using both R base graphics and `ggplot2` graphics (@Wickham). The computation of goodness-of-fit statistics is also addressed. All methods are illustrated on a single data set, the wheat kernel data introduced below.
+
+## Graphical representations of a correlation matrix
+
+We first load some packages we will use:
+
+```{r preinstall}
+library(calibrate)
+library(ggplot2)
+library(corrplot)
+library(Correlplot)
+```
+
+Throughout this vignette, we will use the wheat kernel
+data set taken from the UCI Machine Learning Repository (https://archive.ics.uci.edu/ml/datasets/seeds) in order to illustrate the different plots. 
+The wheat kernel data (@Charytanowicz) consists of 210 wheat kernels, for which the variables 
+*area* ($A$), *perimeter* ($P$), *compactness* ($C = 4*\pi*A/P^2$), 
+*length*, *width*, *asymmetry coefficient* and *groove* (length of the kernel groove) were registered. There are 70 kernels of each of three varieties *Kama*, *Rosa* and *Canadian*; here we will only use the kernels of variety *Kama*. The data is made available with: 
+
+
+```{r}
+data("Kernels")
+X <- Kernels[Kernels$variety==1,]
+X <- X[,-8]
+head(X)
+```
+The correlation matrix of the variables is given by:
+
+```{r}
+p <- ncol(X)
+R <- cor(X)
+round(R,digits=3)
+```
+
+### 1. The corrgram
+
+The corrgram (@Friendly) is a tabular display of the entries of a correlation matrix that uses colour and shading to represent correlations. Corrgrams can be made with the fuction `corrplot` 
+
+
+```{r corrgram, fig.cap = "A corrgram of the wheat kernel data."}
+corrplot(R, method="circle",type="lower")
+```
+
+
+This shows most correlations are positive, and correlations with *asymmetry* are weak.
+
+### 2. The correlogram
+
+The correlogram (@Trosset) represents correlations by the cosines of angles between vectors.
+
+```{r pnames, echo = FALSE}
+vnames <- substr(colnames(R),1,4)
+colnames(R) <- rownames(R) <- vnames
+colnames(X) <- vnames
+```
+
+
+```{r correlogram, fig.cap = "The correlogram of the wheat kernel data."}
+theta.cos <- correlogram(R,xlim=c(-1.1,1.1),ylim=c(-1.1,1.1),main="CRG")
+```
+
+The vector `theta.cos` contains the angles (in radians) of each variable with respect to the positive $x$-axis. The approximation provided by these angles to the correlation matrix is calculated by
+
+```{r}
+Rhat.cor <- angleToR(theta.cos)
+```
+
+The correlogram always perfectly represents the correlations of the variables with themselves, and these have a structural contribution of zero to the loss function. We calculate the root mean squared error (RMSE) of the approximation by using function `rmse`. We include the diagonal of the correlation matrix in the RMSE calculation by supplying a weight matrix of only ones.
+
+```{r}
+W1 <- matrix(1,p,p)
+rmse.crg <- rmse(R,Rhat.cor,W=W1)
+rmse.crg
+```
+
+
+This gives and RMSE of `r formatC(rmse.crg, digits=4, format = "f")`,
+which shows this representation has a large amount of error. The correlogram can be modified by
+using a linear interpretation rule, rendering correlations linear in 
+the angle (@Graffelman2013). This representation is obtained by:
+
+```{r linearcorrelogram, fig.cap="Linear correlogram of the wheat kernel data."}
+theta.lin <- correlogram(R,ifun="lincos",labs=colnames(R),xlim=c(-1.1,1.1),
+                         ylim=c(-1.1,1.1),main="CRG")
+```
+
+The approximation to the correlation matrix by using this linear interpretation function is calculated by
+
+
+```{r}
+Rhat.corlin <- angleToR(theta.lin,ifun="lincos")
+rmse.lin <- rmse(R,Rhat.corlin,W=W1)
+rmse.lin
+```
+
+and this gives a RMSE of `r formatC(rmse.lin, digits=4, format = "f")`. In this case, the linear representation is seen to improve the approximation. 
+
+Function `ggcorrelogram` can be used to create correlograms on a `ggplot2` canvas (@Wickham). The output object contains the field `theta` containing the vector of angles. 
+
+```{r ggcorrelogram, fig.cap="Correlogram of the wheat kernel data on a ggplot2 canvas."}
+set.seed(123)
+crgR <- ggcorrelogram(R,main="CRG",vjust=c(0,2,-1,2,0,-1,2),
+                     hjust=0)
+crgR
+crgR$theta
+```
+
+### 3. The PCA biplot of the correlation matrix
+
+We create a PCA biplot of the correlation matrix, doing the calculations for a PCA by hand, using the singular value decomposition of the (scaled) standardized data. Alternatively, standard R function `princomp` may be used to obtain the coordinates needed for the correlation biplot. We use function `bplot` from package 
+`calibrate` to make the biplot:
+
+```{r pcabiplot, fig.cap = "PCA biplot of the (standardized) wheat kernel data."}
+n <- nrow(X)
+Xt <- scale(X)/sqrt(n-1)
+res.svd <- svd(Xt)
+Fs <- sqrt(n)*res.svd$u # standardized principal components
+Gp <- res.svd$v%*%diag(res.svd$d) # biplot coordinates for variables
+bplot(Fs,Gp,colch=NA,collab=colnames(X),xlab="PC1",ylab="PC2",main="PCA")
+```
+
+
+The joint representation of kernels and variables emphasizes this is a biplot of the (standardized) data matrix. However, this plot is a *double biplot* because scalar products between variable vectors approximate the correlation matrix. We stress this by
+plotting the variable vectors only, and adding a unit circle. In order to facilitate recovery of the approximations to the correlations between the variables, correlation tally sticks can be added as with the `tally` function, as is shown in the figure below:
+
+```{r talliedcorrelationcircle, fig.cap = "PCA biplot of the correlation matrix with correlation tally sticks."}
+bplot(Gp,Gp,colch=NA,rowch=NA,collab=colnames(X),xl=c(-1,1),yl=c(-1,1),main="PCA")
+circle()
+tally(Gp[-6,1:2],values=seq(-0.2,0.8,by=0.2))
+```
+
+The PCA biplot of the correlation matrix can be obtained from a correlation-based PCA or also directly from the spectral decomposition of the correlation matrix. The rank two approximation, obtained by means of scalar products between vectors, is calculated by:
+
+```{r}
+Rhat.pca <- Gp[,1:2]%*%t(Gp[,1:2])
+```
+
+In principle, PCA also tries to approximate the ones on the diagonal of the correlation matrix. These are included in the RMSE calculation by supplying a unit weight matrix. 
+
+```{r}
+rmse.pca <- rmse(R,Rhat.pca,W=W1)
+rmse.pca
+```
+This gives a RMSE of `r formatC(rmse.pca, digits=4, format = "f")`,
+which is an improvement over the previous correlograms. Function `rmse` can also be used to calculate the RMSE of each variable
+separately:
+
+```{r}
+rmse(R,Rhat.pca,W=W1,per.variable=TRUE)
+```
+
+This shows that *asymmetry*, the shortest biplot vector, has the worst fit.
+
+PCA biplots can also be made on a `ggplot2` canvas using the function `ggbplot`. We redo the biplots of the data matrix and the correlation matrix. It is convenient first to establish the range of variation along both axes considering both row and column markers. We find these ranges using `jointlim`:
+
+```{r}
+limits <- jointlim(Fs,Gp)
+limits
+```
+
+Next, we prepare two dataframes, one with the coordinates and names for the rows, and one for the columns.
+
+```{r}
+df.rows <- data.frame(Fs[,1:2])
+colnames(df.rows) <- c("PA1","PA2")
+df.rows$strings <- 1:n
+
+df.cols <- data.frame(Gp[,1:2])
+colnames(df.cols) <- c("PA1","PA2")
+df.cols$strings <- colnames(R)
+```
+
+We compute the variance decomposition table:
+
+
+```{r}
+lambda      <- res.svd$d^2
+lambda.frac <- lambda/sum(lambda)
+lambda.cum  <- cumsum(lambda.frac)
+decom <- round(rbind(lambda,lambda.frac,lambda.cum),digits=3)
+colnames(decom) <- paste("PC",1:p,sep="")
+decom
+```
+And use the table to construct axis labels that inform about the percentage of variance explained by each PC.
+
+```{r}
+xlab <- paste("PC1 (",round(100*lambda.frac[1],digits=1),"%)",sep="")
+ylab <- paste("PC2 (",round(100*lambda.frac[2],digits=1),"%)",sep="")
+```
+
+Finally, we construct the PCA biplot of the data matrix with `ggbplot`.
+
+```{r ggbiplot, fig.cap = "PCA biplot on a ggplot canvas"}
+biplotX <- ggbplot(df.rows,df.cols,main="PCA biplot",xlab=xlab,
+              ylab=ylab,xlim=limits$xlim,ylim=limits$ylim,
+              colch="")
+biplotX
+```
+
+The biplot of the correlation matrix is obtained by supplying the same biplot markers twice, once for the rows and once for the columns. Because the goodness-of-fit of the correlation matrix requires the squared eigenvalues (@Gabriel; @GraffelmanDeLeeuw), we first establish new labels for the axes:
+
+```{r}
+lambdasq      <- lambda^2
+lambdasq.frac <- lambdasq/sum(lambdasq)
+lambdasq.cum  <- cumsum(lambdasq.frac)
+decomsq <- round(rbind(lambdasq,lambdasq.frac,lambdasq.cum),
+                 digits=3)
+colnames(decomsq) <- paste("PC",1:p,sep="")
+decomsq
+
+xlab <- paste("PC1 (",round(100*lambdasq.frac[1],digits=1),"%)",sep="")
+ylab <- paste("PC2 (",round(100*lambdasq.frac[2],digits=1),"%)",sep="")
+
+```
+
+```{r anotherbiplot, fig.cap = "PCA Correlation biplot on a ggplot canvas."}
+biplotR <- ggbplot(df.cols,df.cols,main="PCA Correlation biplot",xlab=xlab,
+              ylab=ylab,xlim=c(-1,1),ylim=c(-1,1),
+              rowarrow=TRUE,rowcolor="blue",colch="",
+              rowch="")
+
+biplotR
+```
+
+We now add correlation tally sticks to the biplot, in order to favour "reading off" the approximations of the correlations. Increments of 0.2 in the correlation scale are marked off along the biplot vectors. For the shortest biplot vector, `asym`, we use a modified scale with 0.01 increments. Note that the goodness-of-fit of the correlation matrix is (always) better or as good as the goodness-of-fit of the standardized data matrix (@GraffelmanDeLeeuw).
+
+```{r yetanotherbiplot, fig.cap = "PCA Correlation biplot with correlation tally sticks."}
+biplotR <- ggtally(Gp[-6,1:2],biplotR,values=seq(-0.2,0.8,by=0.2),dotsize=0.2)
+biplotR <- ggtally(Gp[6,1:2],biplotR,values=seq(-0.01,0.01,by=0.01),dotsize=0.2)
+biplotR
+```
+
+
+### 4. The MDS map of a correlation matrix
+
+We transform correlations to distances with the $\sqrt{2(1-r)}$ transformation (@Hills), and use the `cmdscale` function from the `stats` package to perform metric multidimensional scaling. We mark negative correlations with a dashed red line.
+
+```{r mdsplot, fig.cap = "MDS map of the correlation matrix of the wheat kernel data."}
+Di <- sqrt(2*(1-R))
+out.mds <- cmdscale(Di,eig = TRUE)
+Fp <- out.mds$points[,1:2]
+opar <- par(bty = "l")
+plot(Fp[,1],Fp[,2],asp=1,xlab="First principal axis",
+     ylab="Second principal axis",main="MDS")
+textxy(Fp[,1],Fp[,2],colnames(R),cex=0.75)
+par(opar)
+
+ii <- which(R < 0,arr.ind = TRUE)
+
+for(i in 1:nrow(ii)) {
+  segments(Fp[ii[i,1],1],Fp[ii[i,1],2],
+           Fp[ii[i,2],1],Fp[ii[i,2],2],col="red",lty="dashed")
+}
+```
+
+
+We calculate distances in the map, and convert these back to correlations:
+
+```{r}
+Dest <- as.matrix(dist(Fp[,1:2]))
+Rhat.mds <- 1-0.5*Dest*Dest
+```
+Again, correlations of the variables with themselves are perfectly approximated (zero distance), and we include these in the RMSE calculations:
+
+```{r}
+rmse.mds <- rmse(R,Rhat.mds,W=W1)
+rmse.mds
+```
+
+The same MDS map can be made on a `ggplot2` canvas with
+
+```{r mdsggplot, fig.cap = "MDS map on ggplot canvas."}
+colnames(Fp) <- paste("PA",1:2,sep="")
+rownames(Fp) <- as.character(1:nrow(Fp))
+Fp <- data.frame(Fp)
+Fp$strings <- colnames(R)
+MDSmap <- ggplot(Fp, aes(x = PA1, y = PA2)) + 
+            coord_equal(xlim = c(-1,1), ylim = c(-1,1)) +
+            ggtitle("MDS") +
+            xlab("First principal axis") + ylab("Second principal axis") +
+            theme(plot.title = element_text(hjust = 0.5, 
+                                            size = 8),
+                  axis.ticks = element_blank(),
+                  axis.text.x = element_blank(),
+                  axis.text.y = element_blank())
+MDSmap <- MDSmap + geom_point(data = Fp, aes(x = PA1, y = PA2), 
+                        colour = "black", shape = 1)
+MDSmap <- MDSmap + geom_text(data = Fp, aes(label = strings), 
+                        size = 3, alpha = 1,
+                      vjust = 2) 
+
+Z <- matrix(NA,nrow=nrow(ii),ncol=4)
+for(i in 1:nrow(ii)) {
+  Z[i,] <- c(Fp[ii[i,1],1],Fp[ii[i,1],2],Fp[ii[i,2],1],Fp[ii[i,2],2])
+}
+colnames(Z) <- c("X1","Y1","X2","Y2")
+Z <- data.frame(Z)
+
+MDSmap <- MDSmap + geom_segment(data=Z,aes(x=X1,y=Y1,
+                                           xend=X2,yend=Y2),
+                         alpha=0.75,color="red",linetype=2)   
+MDSmap
+```
+
+### 5. The PFA biplot of a correlation matrix
+
+Principal factor analysis can be performed by the function `pfa` of package `Correlplot`. We extract the factor loadings.
+
+```{r pfa}
+out.pfa <- Correlplot::pfa(X,verbose=FALSE)
+L <- out.pfa$La
+```
+
+The biplot of the correlation matrix obtained by PFA is in fact the same as what is known as a factor loading plot in factor analysis, to which a unit circle can be added. The approximation to the correlation matrix and its RMSE are calculated as:
+
+```{r}
+Rhat.pfa <- L[,1:2]%*%t(L[,1:2])
+rmse.pfa <- rmse(R,Rhat.pfa)
+rmse.pfa
+```
+
+In this case, the diagonal is excluded, for PFA explicitly avoids fitting the diagonal. To make the factor loading plot, aka PFA biplot of the correlation matrix:
+
+```{r pfabiplot, fig.cap = "PFA biplot of the correlation matrix of the wheat kernel data."}
+bplot(L,L,pch=NA,xl=c(-1,1),yl=c(-1,1),xlab="Factor 1",ylab="Factor 2",main="PFA",rowch=NA,
+      colch=NA)
+circle()
+```
+
+
+The RMSE of the plot obtained by PFA is `r formatC(rmse.pfa, digits=4, format = "f")`, lower than the RMSE obtained by PCA. Note that
+variable *area* reaches the unit circle for having a communality of 1, or, equivalently, specificity 0, i.e. PFA produces what is known as a *Heywood case* in factor analysis. The specificities are given by:
+
+
+```{r}
+diag(out.pfa$Psi)
+```
+
+We also construct the PFA biplot on a `ggplot2` canvas with
+
+
+```{r pfaggbiplot, fig.cap = "PFA biplot on a ggplot canvas."}
+L.df <- data.frame(L,rownames(L))
+colnames(L.df) <- c("PA1","PA2","strings")
+ggbplot(L.df,L.df,xlab="Factor 1",ylab="Factor 2",main="PFA biplot",
+        rowarrow=TRUE,rowcolor="blue",colch="",rowch="")
+```
+
+
+### 6. The WALS biplot of a correlation matrix
+
+The correlation matrix can also be factored using weighted alternating least squares, avoiding the fit of the ones on the diagonal of the correlation matrix by assigning them weight 0, using function `ipSymLS` (@DeLeeuw). 
+
+
+```{r}
+Wdiag0 <- matrix(1,nrow(R),nrow(R))
+diag(Wdiag0) <- 0
+Fp.als <- ipSymLS(R,w=Wdiag0,eps=1e-15)
+```
+
+```{r ipsymlsplot, fig.cap = "WALS biplot of the correlation matrix of the wheat kernel data."}
+bplot(Fp.als,Fp.als,rowch=NA,colch=NA,collab=colnames(R),
+      xl=c(-1.1,1.1),yl=c(-1.1,1.1),main="WALS")
+circle()
+```
+
+Weighted alternating least squares has, in contrast to PFA, no restriction on the vector length. If the vector lengths 
+in the biplot are calculated, then variable *area* is seen to 
+just move out of the unit circle.
+
+```{r}
+Rhat.wals <- Fp.als%*%t(Fp.als)
+sqrt(diag(Rhat.wals))
+rmse.als <- rmse(R,Rhat.wals)
+rmse.als
+```
+
+The RMSE of the approximation obtained by WALS is `r formatC(rmse.als, digits=6, format = "f")`, slightly below the RMSE of PFA. The WALS low rank approximation to the correlation matrix can also be obtained by the more generic function `wAddPCA`, which allows for non-symmetric matrices and adjustments (see the next section). In order to get uniquely defined biplot vectors for each variable, corresponding to symmetric input, an eigendecomposition is applied to the fitted correlation matrix. 
+
+```{r}
+out.wals <- wAddPCA(R, Wdiag0, add = "nul", verboseout = FALSE, epsout = 1e-10)
+Rhat.wals <- out.wals$a%*%t(out.wals$b)
+out.eig <- eigen(Rhat.wals)
+Fp.adj <- out.eig$vectors[,1:2]%*%diag(sqrt(out.eig$values[1:2]))
+rmse.als <- rmse(R,Rhat.wals)
+rmse.als
+```
+
+We also make the WALS biplot on a `ggplot2` canvas with
+
+```{r ipsymlsggplot, fig.cap = "WALS biplot of the correlation matrix of the wheat kernel data."}
+Fp.als.df <- data.frame(Fp.als,colnames(R))
+colnames(Fp.als.df) <- c("PA1","PA2","strings")
+ggbplot(Fp.als.df,Fp.als.df,xlab="Dimension 1",ylab="Dimension 2",main="WALS biplot",
+        rowarrow=TRUE,rowcolor="blue",colch="",rowch="")
+```
+
+
+### 7. The WALS biplot using a scalar adjustment of the correlation matrix
+
+A scalar adjustment can be employed to improve the approximation of the correlation matrix, and the adjusted correlation matrix is
+factored for a biplot representation. That means we seek the factorization
+
+\[
+{\mathbf R} - \delta {\mathbf J} = {\mathbf R}_a = {\mathbf G} {\mathbf G}',
+\]
+
+where both $\delta$ and $\mathbf G$ are chosen such that the (weighted) residual sum of squares is minimal. This problem is solved by using function `wAddPCA`.
+
+```{r}
+out.wals <- wAddPCA(R, Wdiag0, add = "one", verboseout = FALSE, epsout = 1e-10)
+delta <- out.wals$delta[1,1]
+Rhat <- out.wals$a%*%t(out.wals$b)
+out.eig <- eigen(Rhat)
+Fp.adj <- out.eig$vectors[,1:2]%*%diag(sqrt(out.eig$values[1:2]))
+```
+
+The optimal adjustment $\delta$ is `r formatC(delta, digits=3, format = "f")`. The corresponding biplot is shown below. 
+
+```{r walsbiplot, fig.cap = "WALS biplot of the correlation matrix of the wheat kernel data, with the use of an additive adjustment."}
+bplot(Fp.adj,Fp.adj,rowch=NA,colch=NA,collab=colnames(R),
+      xl=c(-1.2,1.2),yl=c(-1.2,1.2),main="WALS adjusted")
+circle()
+```
+
+Note that, when calculating the fitted correlation matrix, adjustment $\delta$ is added back. The fitted correlation matrix and its RMSE are now calculated as:
+
+```{r}
+Rhat.adj <- Fp.adj%*%t(Fp.adj)+delta
+rmse.adj <- rmse(R,Rhat.adj)
+rmse.adj
+```
+
+This gives RMSE `r formatC(rmse.adj, digits=4, format = "f")`. This is smaller than the RMSE obtained by WALS without adjustment. We summarize the values of the RMSE of all methods in a table below:
+
+```{r}
+rmsevector <- c(rmse.crg,rmse.lin,rmse.pca,rmse.mds,rmse.pfa,rmse.als,rmse.adj)
+methods <- c("CRG (cos)","CRG (lin)","PCA","MDS",
+"PFA","WALS R","WALS Radj")
+results <- data.frame(methods,rmsevector)
+results <- results[order(rmsevector),]
+results
+```
+
+A summary of RMSE calculations for four methods (PCA and WALS, both with and without $\delta$ adjustment) can be obtained by the functions
+`FitRwithPCAandWALS` and `rmsePCAandWALS`; the first applies the four methods to the correlation matrix, and the latter calculates the RMSE statistics for the four approximations. The bottom line of the table produced by `rmsePCAandWALS` gives the overall RMSE for each methods.
+
+```{r}
+output <- FitRwithPCAandWALS(R,eps=1e-15)
+rmsePCAandWALS(R,output)
+```
+
+The scalar adjustment changes the interpretation of the origin, and it is convenient to show the zero correlation point on each biplot vector. We do so by creating tally sticks, redoing the biplot on a `ggplot2` canvas. The origin now represents correlation `r formatC(out.wals$delta[1,1], digits=2, format = "f")` for all variables.
+
+```{r walsggbiplot, fig.cap = "WALS biplot of the correlation matrix of the wheat kernel data, with additive adjustment and tally sticks."}
+Fp.adj.df <- data.frame(Fp.adj,colnames(R))
+colnames(Fp.adj) <- c("PA1","PA2")
+colnames(Fp.adj.df) <- c("PA1","PA2","strings")
+WALSbiplot.adj <- ggbplot(Fp.adj.df,Fp.adj.df,xlab="Dimension 1",ylab="Dimension 2",
+                          main="WALS adjusted",rowarrow=TRUE,
+                          rowcolor = "blue",rowch="",colch="")
+WALSbiplot.adj <- ggtally(Fp.adj[-6,1:2],WALSbiplot.adj,
+                          adj=-out.wals$delta[1,1],
+                   values=seq(-0.2,0.8,by=0.2),dotsize=0.2)
+WALSbiplot.adj
+```
+
+### 8. The WALS biplot using column adjustment of the correlation matrix
+
+We generate an asymmetric approximation to the correlation matrix using a column adjustment, based on the decomposition (@GraffelmanDeLeeuw2)
+
+\[
+{\mathbf R} = \delta {\mathbf 1} {\mathbf 1}' + {\mathbf 1} {\mathbf q}' + {\mathbf G} {\mathbf G}' + {\mathbf E}.
+\]
+
+This decomposition can be obtained with function `FitDeltaQSym`. 
+
+```{r}
+out.walsq.sym <- FitRDeltaQSym(R,Wdiag0,itmax.inner=30000,itmax.outer=30000,
+                     eps=1e-8)
+Gq.sym <- out.walsq.sym$C
+rownames(Gq.sym) <- colnames(R)
+Rhat.wsym <- out.walsq.sym$Rhat
+rmse.wsym <- rmse(R,Rhat.wsym)
+rmse.wsym
+```
+
+This approximation as a RMSE of `r formatC(out.walsq.sym$rmse,digits=4, format = "f")`, a very minor improvement in comparison with 
+using a single scalar adjustment. 
+
+The corresponding biplot can be obtained with
+
+```{r newplot, fig.cap = "WALS biplot of the correlation matrix with column adjustment and tally sticks."}
+Gq.sym.df <- data.frame(Gq.sym)
+Gq.sym.df$strings <- colnames(R)
+colnames(Gq.sym.df) <- c("PA1","PA2","strings")
+ll <- 1.5
+WALSbiplotq.sym <- ggbplot(Gq.sym.df,Gq.sym.df,main="WALS-q-sym biplot",xlab="Dimension 1",
+                           ylab="Dimension 2",
+                           ylim=c(-ll,ll),xlim=c(-ll,ll),circle=TRUE,
+                           rowarrow=TRUE,rowcolor="blue",rowch="",
+                           colch="")
+for(i in c(1:5,7)) {
+   WALSbiplotq.sym <- ggtally(Gq.sym[i,1:2],WALSbiplotq.sym,
+                              adj=-out.walsq.sym$delta-out.walsq.sym$q[i], 
+              values=seq(-0.2,1,by=0.2),dotsize=0.2)  
+}
+WALSbiplotq.sym
+```
+
+This biplot is similar in appearance to the previous biplot that uses a single scalar adjustment only. However, in principle it no longer has a unique origin, as the origin represents a (slightly) different correlation for each variable:
+
+```{r}
+out.walsq.sym$delta + out.walsq.sym$q
+```
+
+For this data, a single scalar adjustment seems preferable.
+
+\newpage
+
+## References

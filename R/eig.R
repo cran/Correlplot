@@ -1,5 +1,4 @@
-eig <-
-function(X) {
+eig <- function(X) {
   out <- eigen(X)
   V <- out$vectors
   D <- diag(out$values)

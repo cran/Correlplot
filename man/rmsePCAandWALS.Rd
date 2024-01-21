@@ -9,19 +9,19 @@
   approximation to the correlation matrix obtained by PCA or WALS.
 }
 \usage{
-rmsePCAandWALS(R, output, digits = 4, diagonals = c(FALSE,FALSE,TRUE,TRUE))
+rmsePCAandWALS(R, output, digits = 4, omit.diagonals = c(FALSE,FALSE,TRUE,TRUE))
 }
 \arguments{
   \item{R}{The correlation matrix}
   \item{output}{A list object with four approximationst to the correlation matrix}
   \item{digits}{The number of digits used in the output}
-  \item{diagonals}{Vector of four logicals for omitting the diagonal of the correlation matrix
+  \item{omit.diagonals}{Vector of four logicals for omitting the diagonal of the correlation matrix
   for RMSE calculations. Defaults to c(FALSE,FALSE,TRUE,TRUE), to include the diagonal
   for PCA and exclude it for WALS}
 }
 \value{A matrix with one row per variable and four columns for RMSE statistics.}
 \references{
-  Graffelman, J. and De Leeuw, J. (2023) Improved approximation and visualization of the correlation matrix. The American Statistician pp. 1--20. Available online as latest article  \doi{10.1080/00031305.2023.2186952}
+  Graffelman, J. and De Leeuw, J. (2023) Improved approximation and visualization of the correlation matrix. The American Statistician pp. 1--20. \doi{10.1080/00031305.2023.2186952}
 }
 \author{ Jan Graffelman (jan.graffelman@upc.edu) }
 \seealso{
