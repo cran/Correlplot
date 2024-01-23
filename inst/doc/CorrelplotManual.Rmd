@@ -25,7 +25,7 @@ knitr::opts_chunk$set(fig.width = 6, fig.height = 6)
 
 ## Introduction
 
-This documents gives some instructions on how to create graphical representations of a correlation matrix in the statistical environment R with package `Correlplot`, using a variety of different statistical methods (@GraffelmanDeLeeuw;  @GraffelmanDeLeeuw2). We use principal component analysis (PCA), multidimensional scaling (MDS), principal factor analysis (PFA), weighted alternating least squares (WALS), correlograms (CRG) and corrgrams to produce displays of correlation structure. The next section shows how to use the functions of the package in order to create the different graphical representations, using both R base graphics and `ggplot2` graphics (@Wickham). The computation of goodness-of-fit statistics is also addressed. All methods are illustrated on a single data set, the wheat kernel data introduced below.
+This documents gives some instructions on how to create graphical representations of a correlation matrix in the statistical environment R with package `Correlplot`, using a variety of different statistical methods (@GraffelmanDeLeeuw). We use principal component analysis (PCA), multidimensional scaling (MDS), principal factor analysis (PFA), weighted alternating least squares (WALS), correlograms (CRG) and corrgrams to produce displays of correlation structure. The next section shows how to use the functions of the package in order to create the different graphical representations, using both R base graphics and `ggplot2` graphics (@Wickham). The computation of goodness-of-fit statistics is also addressed. All methods are illustrated on a single data set, the wheat kernel data introduced below.
 
 ## Graphical representations of a correlation matrix
 
@@ -494,7 +494,7 @@ WALSbiplot.adj
 
 ### 8. The WALS biplot using column adjustment of the correlation matrix
 
-We generate an asymmetric approximation to the correlation matrix using a column adjustment, based on the decomposition (@GraffelmanDeLeeuw2)
+We generate an asymmetric approximation to the correlation matrix using a column adjustment, based on the decomposition
 
 \[
 {\mathbf R} = \delta {\mathbf 1} {\mathbf 1}' + {\mathbf 1} {\mathbf q}' + {\mathbf G} {\mathbf G}' + {\mathbf E}.

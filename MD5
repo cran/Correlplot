@@ -1,4 +1,4 @@
-0e632bca579a483256e185e1d2e04e21 *DESCRIPTION
+6905f9ec2b2677b94e0684982bb9885e *DESCRIPTION
 99dab4de934fe6ae45df01a4f2d69610 *NAMESPACE
 af383cde5afcbae2d54c3e2ad44e3984 *R/FitRDeltaQSym.R
 c82a0a2feb0cbde0f439a29f451da1ac *R/FitRwithPCAandWALS.R
@@ -54,8 +54,8 @@ b49928a439de6c11b871171796e93266 *data/storksR.rda
 aba02626fbd880dad73745600d1babc2 *data/students.rda
 1495a1123174c0bfc96defe5d4b5470f *data/studentsR.rda
 90117905bd1707f39df1a0805f8de296 *inst/doc/CorrelplotManual.R
-d4a7d014af0ca1c6007e7abc7c5ecd66 *inst/doc/CorrelplotManual.Rmd
-58563c951b1dca8c9092e00c42d3ffa0 *inst/doc/CorrelplotManual.html
+a0470cc7de68df6def9004d1f5ca4666 *inst/doc/CorrelplotManual.Rmd
+c6da39072129004e1d17885583e25223 *inst/doc/CorrelplotManual.html
 8c82b12cf885d326f5dc3acf2b8c4acd *man/FitRDeltaQSym.Rd
 ac5a4edf5c3a0a027551bb969899611c *man/FitRwithPCAandWALS.Rd
 4a0bb6268048bb90ca328864cabc08b8 *man/HeartAttack.Rd
@@ -95,5 +95,5 @@ b416d433ba86792cebe2bc252cb75f8e *man/students.Rd
 97730855e5c5864fb249ecaf166de762 *man/tally.Rd
 a83982ce645a8a2ba57bdab60a737035 *man/tr.Rd
 5fff2e3d8f7d46578b18766ca421d542 *man/wAddPCA.Rd
-ad0c273b4fd0909f2c5b445e0da05f43 *vignettes/Correlplot.bib
-d4a7d014af0ca1c6007e7abc7c5ecd66 *vignettes/CorrelplotManual.Rmd
+af4ed6a9b2edd22f8ebe3de8e8027c69 *vignettes/Correlplot.bib
+a0470cc7de68df6def9004d1f5ca4666 *vignettes/CorrelplotManual.Rmd
